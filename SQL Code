@@ -19,12 +19,18 @@ VALUES
 
 -- Query to retrieve the desired output
 WITH super_users AS (
-    SELECT user_id, MIN(transaction_date) AS super_user_date
+    SELECT user_id, product_id, transaction_date,
+           ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY product_id DESC, transaction_date DESC) AS row_num,
+           COUNT(*) OVER (PARTITION BY user_id) AS transaction_count
     FROM users
+),
+user_dates AS (
+    SELECT user_id, MAX(transaction_date) AS transaction_date
+    FROM super_users
+    WHERE row_num = 1 AND transaction_count >= 2
     GROUP BY user_id
-    HAVING COUNT(*) >= 2
 )
-SELECT u.user_id, COALESCE(super_users.super_user_date, 'NULL') AS superuser_date
+SELECT u.user_id, COALESCE(user_dates.transaction_date, 'NULL') AS superuser_date
 FROM (SELECT DISTINCT user_id FROM users) u
-LEFT JOIN super_users ON u.user_id = super_users.user_id
+LEFT JOIN user_dates ON u.user_id = user_dates.user_id
 ORDER BY u.user_id;
