@@ -1,0 +1,19 @@
+def min_moves(arr):
+    zero=0
+    one=0
+    two=0
+    for i in range(len(arr)):
+        if arr[i] == "0":
+            zero+=1
+        elif arr[i] == "1":
+            one+=1
+        else:
+            two+=1
+
+    return min(zero, one, two)
+
+T = int(input().strip())
+for i in range(T):
+    arr = input().strip()
+    result = min_moves(arr)
+    print(result)
